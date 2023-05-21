@@ -38,10 +38,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  static const rpcUrl = 'http://192.168.31.22:7545';
   String _mnemonic = '';
   String _privateKey = '';
   String _address = '';
   String _balance = '';
+  BigInt _estimateGas = BigInt.zero;
+  String _sendResult = '';
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: const Text('privateKey'),
             ),
+
             Text(_address,),
             ElevatedButton(
               onPressed: () {
@@ -95,7 +99,6 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(_balance,),
             ElevatedButton(
               onPressed: () async {
-                String rpcUrl = 'http://192.168.31.22:7545';
                 final client = Web3Client(rpcUrl, Client());
                 try {
                   EtherAmount balance = await client.getBalance(EthereumAddress.fromHex(_address));
@@ -109,6 +112,45 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               },
               child: const Text('Balance'),
+            ),
+
+            Text(_estimateGas.toString(),),
+            ElevatedButton(
+              onPressed: () async {
+                final client = Web3Client(rpcUrl, Client());
+                _estimateGas = await client.estimateGas(
+                  sender: EthereumAddress.fromHex(_address),
+                  to: EthereumAddress.fromHex('51538E31946e3D4be6acDC0BBfCE15C7725e525c'),
+                  value: EtherAmount.fromInt(EtherUnit.ether, 1),
+                );
+                setState(() {
+                });
+              },
+              child: const Text('EstimateGas'),
+            ),
+
+            Text(_sendResult,),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  final client = Web3Client(rpcUrl, Client());
+                  final Credentials credentials = EthPrivateKey.fromHex(_privateKey);
+                  final Transaction transaction = Transaction(
+                    to: EthereumAddress.fromHex('51538E31946e3D4be6acDC0BBfCE15C7725e525c'),
+                    gasPrice: EtherAmount.inWei(BigInt.parse('20000000000')),
+                    maxGas: 100000,
+                    value: EtherAmount.fromInt(EtherUnit.ether, 1),
+                  );
+                  _sendResult = await client.sendTransaction(credentials, transaction, chainId: 1337);
+                } catch (e) {
+                  _sendResult = e.toString();
+                } finally {
+                  setState(() {
+                  });
+                }
+
+              },
+              child: const Text('Send'),
             ),
           ],
         ),
