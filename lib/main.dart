@@ -38,7 +38,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  static const rpcUrl = 'http://192.168.31.22:7545';
+  // static const rpcUrl = 'http://192.168.31.22:7545';
+  static const rpcUrl = 'https://sepolia.infura.io/v3/16964016234a4b919484bce13ca4cbe3';
+
   String _mnemonic = '';
   String _privateKey = '';
   String _address = '';
@@ -100,12 +102,16 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               onPressed: () async {
                 final client = Web3Client(rpcUrl, Client());
+                final clientVersion = await client.getClientVersion();
+                final clientChainId = await client.getChainId();
+                final clientGasPrice = await client.getGasPrice();
+                final clientNetworkId = await client.getNetworkId();
                 try {
                   EtherAmount balance = await client.getBalance(EthereumAddress.fromHex(_address));
                   double b = balance.getValueInUnit(EtherUnit.ether);
                   _balance = b.toStringAsFixed(12);
                 } catch (e) {
-                  _balance = 'error';
+                  _balance = e.toString();
                 }
                 setState(() {
 
@@ -118,10 +124,14 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               onPressed: () async {
                 final client = Web3Client(rpcUrl, Client());
+                final clientVersion = await client.getClientVersion();
+                final clientChainId = await client.getChainId();
+                final clientGasPrice = await client.getGasPrice();
+                final clientNetworkId = await client.getNetworkId();
                 _estimateGas = await client.estimateGas(
                   sender: EthereumAddress.fromHex(_address),
                   to: EthereumAddress.fromHex('51538E31946e3D4be6acDC0BBfCE15C7725e525c'),
-                  value: EtherAmount.fromInt(EtherUnit.ether, 1),
+                  value: EtherAmount.fromInt(EtherUnit.finney, 10),
                 );
                 setState(() {
                 });
@@ -139,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     to: EthereumAddress.fromHex('51538E31946e3D4be6acDC0BBfCE15C7725e525c'),
                     gasPrice: EtherAmount.inWei(BigInt.parse('20000000000')),
                     maxGas: 100000,
-                    value: EtherAmount.fromInt(EtherUnit.ether, 1),
+                    value: EtherAmount.fromInt(EtherUnit.finney, 10),
                   );
                   _sendResult = await client.sendTransaction(credentials, transaction, chainId: 1337);
                 } catch (e) {
